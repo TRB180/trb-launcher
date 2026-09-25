@@ -1,0 +1,48 @@
+{
+  "name": "trb-launcher",
+  "version": "1.0.0",
+  "description": "TRB Launcher • Lunar Edition for Minecraft Java Edition",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64"
+  },
+  "keywords": [
+    "minecraft",
+    "launcher",
+    "trbmc",
+    "electron"
+  ],
+  "author": "Murtaja / TRB",
+  "license": "ISC",
+  "dependencies": {
+    "minecraft-launcher-core": "^3.18.2"
+  },
+  "devDependencies": {
+    "electron": "^44.4.5",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.trb.launcher",
+    "productName": "TRB Launcher",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
