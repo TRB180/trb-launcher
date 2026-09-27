@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root" data-theme="emerald">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TRB Launcher — Login</title>
+<link rel="icon" type="image/png" href="trb-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#1bd96a;
+  --accent-rgb:27,217,106;
+  --accent-dark:#0ea84c;
+  --accent-light:#22e574;
+  --bg-0:#04060a;
+  --bg-1:#080b11;
+  --bg-2:#0d1118;
+  --bg-3:#12171f;
+  --bg-4:#1a2029;
+  --bd-1:rgba(255,255,255,.04);
+  --bd-2:rgba(255,255,255,.08);
+  --bd-3:rgba(255,255,255,.12);
+  --tx-1:#f8fafc;
+  --tx-2:#94a3b8;
+  --tx-3:#64748b;
+  --tx-4:#475569;
+  --success:#22c55e;
+  --danger:#ef4444;
+  --warning:#f59e0b;
+  --font-ar:'Cairo',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  --t:250ms cubic-bezier(.4,0,.2,1);
+  --t-spring:600ms cubic-bezier(.34,1.56,.64,1);
+  --r-sm:10px;--r-md:14px;--r-lg:18px;--r-xl:24px;--r-2xl:32px;--r-full:9999px;
+  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:32px;--s-8:40px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:var(--font-ar);
+  background:var(--bg-0);
+  color:var(--tx-1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  -webkit-font-smoothing:antialiased;
+  user-select:none;
+}
+button,input{font-family:inherit;font-size:inherit;color:inherit;border:none;background:none;outline:none}
+button{cursor:pointer}
+.hidden{display:none!important}
+::selection{background:rgba(var(--accent-rgb),.35);color:#fff}
+
+/* ═══ BACKGROUND ═══ */
+.bg-grid{
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse at center,black 25%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse at center,black 25%,transparent 75%);
+  pointer-events:none;
+}
+.bg-orb{
+  position:fixed;border-radius:50%;
+  filter:blur(140px);opacity:.18;pointer-events:none;
+}
+.orb-1{
+  width:600px;height:600px;top:-200px;right:-200px;
+  background:radial-gradient(circle,rgba(var(--accent-rgb),.8),transparent 70%);
+  animation:orb1 22s ease-in-out infinite;
+}
+.orb-2{
+  width:500px;height:500px;bottom:-200px;left:-150px;
+  background:radial-gradient(circle,rgba(var(--accent-rgb),.6),transparent 70%);
+  animation:orb2 28s ease-in-out infinite;
+}
+@keyframes orb1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,40px) scale(1.1)}}
+@keyframes orb2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(50px,-30px) scale(1.15)}}
+
+/* ═══ WINDOW CONTROLS ═══ */
+.win-ctrls{
+  position:fixed;top:0;z-index:100;display:flex;height:32px;
+  -webkit-app-region:no-drag;
+}
+html[dir="rtl"] .win-ctrls{left:0}
+html[dir="ltr"] .win-ctrls{right:0}
+.win-btn{
+  width:46px;height:32px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--tx-3);
+  transition:var(--t);
+}
+.win-btn svg{width:11px;height:11px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round}
+.win-btn:hover{background:rgba(255,255,255,.06);color:var(--tx-1)}
+.win-btn.close:hover{background:#e81123;color:#fff}
+.win-drag{
+  position:fixed;top:0;height:32px;
+  -webkit-app-region:drag;z-index:99;
+}
+html[dir="rtl"] .win-drag{left:138px;right:0}
+html[dir="ltr"] .win-drag{left:0;right:138px}
+
+/* ═══ LANGUAGE TOGGLE ═══ */
+.lang-btn{
+  position:fixed;top:12px;z-index:100;
+  padding:7px 14px;border-radius:var(--r-sm);
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--bd-2);
+  color:var(--tx-2);
+  font-size:11px;font-weight:900;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  display:flex;align-items:center;gap:6px;
+  transition:var(--t);
+  -webkit-app-region:no-drag;
+}
+html[dir="rtl"] .lang-btn{right:12px}
+html[dir="ltr"] .lang-btn{left:12px}
+.lang-btn:hover{color:var(--accent);border-color:rgba(var(--accent-rgb),.4)}
+.lang-btn .active{color:var(--accent)}
+
+/* ═══ LOGIN CARD ═══ */
+.login-card{
+  width:440px;
+  max-height:calc(100vh - 60px);
+  overflow-y:auto;
+  padding:36px 32px 28px;
+  border-radius:var(--r-2xl);
+  background:linear-gradient(160deg,rgba(13,17,24,.98),rgba(4,6,10,.98));
+  border:1px solid var(--bd-2);
+  box-shadow:
+    0 30px 80px -20px rgba(0,0,0,.9),
+    0 0 0 1px rgba(var(--accent-rgb),.08),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  position:relative;
+  z-index:10;
+  animation:cardIn 600ms cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(20px) scale(.96)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.login-card::-webkit-scrollbar{width:6px}
+.login-card::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:6px}
+.login-card::before{
+  content:'';
+  position:absolute;top:0;left:15%;right:15%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.6),transparent);
+}
+
+/* ═══ LOGO ═══ */
+.login-logo{
+  width:88px;height:88px;
+  border-radius:var(--r-2xl);
+  margin:0 auto var(--s-5);
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--accent-light),var(--accent) 45%,var(--accent-dark));
+  box-shadow:
+    0 0 60px rgba(var(--accent-rgb),.4),
+    0 12px 32px rgba(0,0,0,.4),
+    inset 0 2px 0 rgba(255,255,255,.25);
+  overflow:hidden;
+  animation:logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.03)}
+}
+.login-logo img{width:100%;height:100%;object-fit:cover}
+
+/* ═══ HEADER ═══ */
+.login-title{
+  text-align:center;
+  font-weight:900;
+  font-size:24px;
+  letter-spacing:-.4px;
+  color:#fff;
+  margin-bottom:6px;
+}
+.login-title .accent{color:var(--accent)}
+.login-sub{
+  text-align:center;
+  color:var(--tx-3);
+  font-size:12.5px;
+  font-weight:700;
+  margin-bottom:var(--s-6);
+}
+
+/* ═══ TABS ═══ */
+.auth-tabs{
+  display:flex;
+  gap:5px;
+  padding:5px;
+  border-radius:var(--r-md);
+  background:rgba(0,0,0,.4);
+  border:1px solid var(--bd-1);
+  margin-bottom:var(--s-5);
+}
+.auth-tab{
+  flex:1;
+  padding:10px;
+  border-radius:var(--r-sm);
+  color:var(--tx-3);
+  font-size:12.5px;
+  font-weight:900;
+  letter-spacing:.3px;
+  transition:var(--t);
+}
+.auth-tab:hover{color:var(--tx-2)}
+.auth-tab.active{
+  background:linear-gradient(135deg,rgba(var(--accent-rgb),.2),rgba(var(--accent-rgb),.08));
+  color:var(--accent);
+}
+
+/* ═══ FIELDS ═══ */
+.field{margin-bottom:var(--s-3)}
+.label{
+  display:block;
+  font-size:10.5px;
+  font-weight:900;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--tx-3);
+  margin-bottom:7px;
+}
+.input{
+  width:100%;
+  padding:12px 15px;
+  border-radius:var(--r-md);
+  background:rgba(0,0,0,.5);
+  border:1px solid var(--bd-2);
+  color:var(--tx-1);
+  font-size:13.5px;
+  font-weight:700;
+  transition:var(--t);
+}
+.input:focus{
+  border-color:rgba(var(--accent-rgb),.6);
+  background:rgba(0,0,0,.7);
+  box-shadow:0 0 0 3px rgba(var(--accent-rgb),.15);
+}
+.input::placeholder{color:var(--tx-4);font-weight:500}
+.input.valid{border-color:rgba(34,197,94,.6)}
+.input.error{border-color:rgba(239,68,68,.6)}
+
+.pass-wrap{position:relative}
+.pass-wrap input{padding-inline-start:42px}
+html[dir="rtl"] .pass-wrap input{padding-inline-start:42px;padding-inline-end:15px}
+html[dir="ltr"] .pass-wrap input{padding-inline-start:15px;padding-inline-end:42px}
+.pass-toggle{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:transparent;
+  color:var(--tx-3);
+  padding:6px;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--t);
+}
+html[dir="rtl"] .pass-toggle{left:11px}
+html[dir="ltr"] .pass-toggle{right:11px}
+.pass-toggle:hover{color:var(--accent)}
+.pass-toggle svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+.form-hint{
+  font-size:10.5px;
+  color:var(--tx-4);
+  margin-top:6px;
+  font-weight:700;
+  line-height:1.5;
+  transition:var(--t);
+}
+.form-hint.valid{color:var(--success)}
+.form-hint.error{color:var(--danger)}
+
+.remember-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:6px;
+  margin-bottom:var(--s-4);
+  font-size:12px;
+  color:var(--tx-3);
+  font-weight:700;
+  cursor:pointer;
+}
+.remember-row input{
+  width:16px;height:16px;
+  accent-color:var(--accent);
+  cursor:pointer;
+}
+
+/* ═══ SUBMIT BUTTON ═══ */
+.submit-btn{
+  width:100%;
+  padding:13px;
+  border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--accent-light),var(--accent) 45%,var(--accent-dark));
+  color:#000;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.5px;
+  transition:var(--t-spring);
+  box-shadow:
+    0 8px 24px rgba(var(--accent-rgb),.35),
+    inset 0 1.5px 0 rgba(255,255,255,.3);
+  position:relative;
+  overflow:hidden;
+}
+.submit-btn::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 30%,rgba(255,255,255,.25) 50%,transparent 70%);
+  transform:translateX(-100%);
+  transition:transform 600ms;
+}
+.submit-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 12px 32px rgba(var(--accent-rgb),.5),
+    inset 0 1.5px 0 rgba(255,255,255,.4);
+}
+.submit-btn:hover::before{transform:translateX(100%)}
+.submit-btn:active{transform:translateY(0) scale(.99)}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ═══ ERROR ═══ */
+.error-box{
+  margin-top:var(--s-3);
+  padding:11px 14px;
+  border-radius:var(--r-md);
+  background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.35);
+  font-size:12px;
+  color:#f87171;
+  font-weight:700;
+  text-align:center;
+  display:none;
+  animation:shake 400ms;
+}
+.error-box.show{display:block}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)}
+  75%{transform:translateX(6px)}
+}
+
+/* ═══ COUNTER ═══ */
+.counter-badge{
+  padding:7px 14px;
+  border-radius:var(--r-sm);
+  background:rgba(var(--accent-rgb),.1);
+  border:1px solid rgba(var(--accent-rgb),.25);
+  color:var(--accent);
+  font-size:10.5px;
+  font-weight:900;
+  font-family:var(--font-mono);
+  letter-spacing:.5px;
+  text-align:center;
+  margin-bottom:var(--s-3);
+}
+
+/* ═══ SAVED ACCOUNTS ═══ */
+.saved-accounts{
+  margin-top:var(--s-4);
+  padding-top:var(--s-4);
+  border-top:1px solid var(--bd-1);
+}
+.saved-title{
+  font-size:10.5px;
+  font-weight:900;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--tx-3);
+  margin-bottom:10px;
+}
+.saved-list{display:flex;flex-direction:column;gap:6px}
+.saved-item{
+  padding:10px 12px;
+  border-radius:var(--r-md);
+  background:rgba(0,0,0,.4);
+  border:1px solid var(--bd-1);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  cursor:pointer;
+  transition:var(--t);
+}
+.saved-item:hover{
+  border-color:rgba(var(--accent-rgb),.4);
+  background:rgba(var(--accent-rgb),.06);
+  transform:translateX(-4px);
+}
+html[dir="ltr"] .saved-item:hover{transform:translateX(4px)}
+.saved-avatar{
+  width:36px;height:36px;
+  border-radius:var(--r-sm);
+  background:linear-gradient(135deg,var(--accent-light),var(--accent-dark));
+  color:#000;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:15px;
+  flex-shrink:0;
+}
+.saved-info{flex:1;min-width:0}
+.saved-info strong{
+  display:block;
+  font-size:13px;
+  color:#fff;
+  font-weight:900;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  margin-bottom:2px;
+}
+.saved-info span{
+  font-size:10.5px;
+  color:var(--tx-4);
+  font-weight:700;
+  font-family:var(--font-mono);
+}
+.saved-remove{
+  width:28px;height:28px;
+  border-radius:8px;
+  color:var(--tx-3);
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--t);
+}
+.saved-remove:hover{
+  background:rgba(239,68,68,.15);
+  color:#f87171;
+}
+.saved-remove svg{
+  width:14px;height:14px;
+  stroke:currentColor;stroke-width:2;
+  fill:none;stroke-linecap:round;
+}
+
+/* ═══ FOOTER ═══ */
+.login-footer{
+  text-align:center;
+  margin-top:var(--s-5);
+  font-size:10.5px;
+  color:var(--tx-4);
+  font-weight:700;
+  font-family:var(--font-mono);
+  letter-spacing:.5px;
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+
+<div class="win-ctrls">
+  <button class="win-btn" id="btn-min" title="Minimize">
+    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="win-btn close" id="btn-close" title="Close">
+    <svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+  </button>
+</div>
+<div class="win-drag"></div>
+
+<button class="lang-btn" onclick="toggleLang()">
+  <span class="active" id="lang-current">AR</span>
+  <span style="opacity:.3">|</span>
+  <span id="lang-other">EN</span>
+</button>
+
+<div class="login-card">
+  <div class="login-logo">
+    <img src="trb-icon.png" onerror="this.parentElement.innerHTML='<span style=&quot;font-weight:900;color:#000;font-size:44px&quot;>T</span>'">
+  </div>
+
+  <h1 class="login-title">مرحباً بك في <span class="accent">TRB</span></h1>
+  <p class="login-sub" data-i18n="sub">اختر حسابك للدخول</p>
+
+  <div class="auth-tabs">
+    <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')" data-i18n="tab_login">تسجيل الدخول</button>
+    <button class="auth-tab" id="tab-create" onclick="switchAuthTab('create')" data-i18n="tab_create">إنشاء حساب</button>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <div id="form-login">
+    <div class="field">
+      <label class="label" data-i18n="username">اسم المستخدم</label>
+      <input type="text" id="login-user" class="input" placeholder="Steve123" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="field">
+      <label class="label" data-i18n="password">كلمة المرور</label>
+      <div class="pass-wrap">
+        <input type="password" id="login-pass" class="input" placeholder="••••••••" autocomplete="off">
+        <button class="pass-toggle" type="button" onclick="togglePass('login-pass', this)">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <label class="remember-row">
+      <input type="checkbox" id="remember-me" checked>
+      <span data-i18n="remember">تذكرني — لا تطالبني بالدخول مجدداً</span>
+    </label>
+
+    <button class="submit-btn" onclick="doLogin()" data-i18n="btn_login">تسجيل الدخول</button>
+  </div>
+
+  <!-- CREATE FORM -->
+  <div id="form-create" class="hidden">
+    <div class="counter-badge"><span id="create-counter">0</span> / 10 ACCOUNTS</div>
+
+    <div class="field">
+      <label class="label" data-i18n="new_user">اسم المستخدم الجديد</label>
+      <input type="text" id="create-user" class="input" placeholder="3-16 chars, English only" autocomplete="off" oninput="validateCreateUser(this)" maxlength="16" spellcheck="false">
+      <div class="form-hint" id="create-user-hint">3-16 chars · English, numbers, _</div>
+    </div>
+
+    <div class="field">
+      <label class="label" data-i18n="password">كلمة المرور</label>
+      <div class="pass-wrap">
+        <input type="password" id="create-pass" class="input" placeholder="4+ characters" autocomplete="off" maxlength="32">
+        <button class="pass-toggle" type="button" onclick="togglePass('create-pass', this)">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label" data-i18n="confirm_pass">تأكيد كلمة المرور</label>
+      <div class="pass-wrap">
+        <input type="password" id="create-pass2" class="input" placeholder="..." autocomplete="off" maxlength="32">
+        <button class="pass-toggle" type="button" onclick="togglePass('create-pass2', this)">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <button class="submit-btn" onclick="doCreate()" data-i18n="btn_create">إنشاء الحساب</button>
+  </div>
+
+  <div class="error-box" id="error-box"></div>
+
+  <div class="saved-accounts hidden" id="saved-accounts">
+    <div class="saved-title" data-i18n="saved">الحسابات المحفوظة</div>
+    <div class="saved-list" id="saved-list"></div>
+  </div>
+
+  <div class="login-footer">TRB LAUNCHER v1.0.0</div>
+</div>
+
+<script>
+let ipcRenderer = null;
+try { ipcRenderer = require('electron').ipcRenderer; } catch(e) {}
+
+const MAX_ACCOUNTS = 10;
+
+const I18N = {
+  ar: {
+    'sub': 'اختر حسابك للدخول',
+    'tab_login': 'تسجيل الدخول',
+    'tab_create': 'إنشاء حساب',
+    'username': 'اسم المستخدم',
+    'password': 'كلمة المرور',
+    'confirm_pass': 'تأكيد كلمة المرور',
+    'new_user': 'اسم المستخدم الجديد',
+    'remember': 'تذكرني — لا تطالبني بالدخول مجدداً',
+    'btn_login': 'تسجيل الدخول',
+    'btn_create': 'إنشاء الحساب',
+    'saved': 'الحسابات المحفوظة',
+    'err_user_short': 'اسم المستخدم قصير جداً',
+    'err_pass_short': 'كلمة المرور قصيرة جداً',
+    'err_no_account': 'الحساب غير موجود. أنشئ حساباً جديداً.',
+    'err_wrong_pass': 'كلمة المرور غير صحيحة',
+    'err_name_len': 'الاسم يجب أن يكون 3 أحرف فأكثر',
+    'err_name_long': 'الاسم طويل جداً',
+    'err_name_chars': 'حروف إنجليزية وأرقام و _ فقط',
+    'err_pass_min': 'كلمة المرور 4 أحرف فأكثر',
+    'err_pass_match': 'كلمتا المرور غير متطابقتين',
+    'err_name_taken': 'الاسم محجوز',
+    'err_max_accounts': 'الحد الأقصى 10 حسابات'
+  },
+  en: {
+    'sub': 'Choose your account to continue',
+    'tab_login': 'Sign In',
+    'tab_create': 'Create Account',
+    'username': 'Username',
+    'password': 'Password',
+    'confirm_pass': 'Confirm Password',
+    'new_user': 'New Username',
+    'remember': 'Remember me',
+    'btn_login': 'Sign In',
+    'btn_create': 'Create Account',
+    'saved': 'Saved Accounts',
+    'err_user_short': 'Username too short',
+    'err_pass_short': 'Password too short',
+    'err_no_account': 'Account not found. Create a new one.',
+    'err_wrong_pass': 'Wrong password',
+    'err_name_len': 'Name must be 3+ characters',
+    'err_name_long': 'Name too long',
+    'err_name_chars': 'English letters, numbers & _ only',
+    'err_pass_min': 'Password 4+ characters',
+    'err_pass_match': 'Passwords do not match',
+    'err_name_taken': 'Name already taken',
+    'err_max_accounts': 'Maximum 10 accounts'
+  }
+};
+
+let LANG = localStorage.getItem('trb_lang') || 'ar';
+function t(k){ return (I18N[LANG] || I18N.ar)[k] || k; }
+
+function applyLang(){
+  document.documentElement.setAttribute('lang', LANG);
+  document.documentElement.setAttribute('dir', LANG === 'ar' ? 'rtl' : 'ltr');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (v && v !== el.dataset.i18n) el.textContent = v;
+  });
+  const lc = document.getElementById('lang-current');
+  const lo = document.getElementById('lang-other');
+  if (lc) lc.textContent = LANG.toUpperCase();
+  if (lo) lo.textContent = LANG === 'ar' ? 'EN' : 'AR';
+  renderSavedAccounts();
+}
+
+function toggleLang(){
+  LANG = LANG === 'ar' ? 'en' : 'ar';
+  localStorage.setItem('trb_lang', LANG);
+  applyLang();
+}
+
+document.getElementById('btn-min').onclick = () => { if (ipcRenderer) ipcRenderer.send('window-minimize'); };
+document.getElementById('btn-close').onclick = () => { if (ipcRenderer) ipcRenderer.send('window-close'); };
+
+function getAccounts(){
+  try {
+    const raw = JSON.parse(localStorage.getItem('trb_accounts') || '[]');
+    return raw.map(normalizeAccount).slice(0, MAX_ACCOUNTS);
+  } catch(e) { return []; }
+}
+
+function saveAccounts(accounts){
+  accounts = accounts.map(normalizeAccount).slice(0, MAX_ACCOUNTS);
+  localStorage.setItem('trb_accounts', JSON.stringify(accounts));
+  if (ipcRenderer) ipcRenderer.invoke('save-accounts', accounts).catch(() => {});
+}
+
+function normalizeAccount(raw){
+  const username = String(raw.username || raw.name || 'Player').trim();
+  return {
+    id: raw.id || ('acc_' + Date.now() + Math.floor(Math.random() * 1000)),
+    username: username,
+    name: username,
+    password: raw.password || '',
+    uuid: (raw.uuid && /^[0-9a-f-]{36}$/i.test(raw.uuid)) ? raw.uuid : generateUUID(),
+    color: raw.color || '#1bd96a',
+    created: raw.created || Date.now(),
+    lastLogin: raw.lastLogin || Date.now(),
+    saved: raw.saved !== false
+  };
+}
+
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function cleanUsername(name){
+  const c = String(name || 'Player').replace(/[^A-Za-z0-9_]/g, '').slice(0, 16);
+  return c.length >= 3 ? c : 'Player';
+}
+
+function findAccount(u){
+  return getAccounts().find(a => (a.username || a.name || '').toLowerCase() === String(u || '').toLowerCase());
+}
+
+function updateCreateCounter(){
+  const c = document.getElementById('create-counter');
+  if (c) c.textContent = getAccounts().length;
+}
+
+function showError(msg){
+  const el = document.getElementById('error-box');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+function togglePass(id, btn){
+  const input = document.getElementById(id);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  } else {
+    input.type = 'password';
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  }
+}
+
+function validateCreateUser(input){
+  const name = input.value.trim();
+  const hint = document.getElementById('create-user-hint');
+  if (!hint) return;
+  if (!name) {
+    input.classList.remove('valid', 'error');
+    hint.className = 'form-hint';
+    hint.textContent = '3-16 chars · English, numbers, _';
+    return;
+  }
+  if (/^[A-Za-z0-9_]{3,16}$/.test(name)) {
+    input.classList.remove('error');
+    input.classList.add('valid');
+    hint.className = 'form-hint valid';
+    hint.textContent = '✓ Valid username';
+  } else {
+    input.classList.remove('valid');
+    input.classList.add('error');
+    hint.className = 'form-hint error';
+    hint.textContent = '✗ 3-16 chars, English, _, numbers only';
+  }
+}
+
+function switchAuthTab(tab){
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-create').classList.toggle('active', tab === 'create');
+  document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('form-create').classList.toggle('hidden', tab !== 'create');
+  document.getElementById('error-box').classList.remove('show');
+  if (tab === 'create') updateCreateCounter();
+}
+
+async function doLogin(){
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const remember = document.getElementById('remember-me').checked;
+
+  if (!u || u.length < 3) return showError(t('err_user_short'));
+  if (!p || p.length < 3) return showError(t('err_pass_short'));
+
+  const acc = findAccount(u);
+  if (!acc) return showError(t('err_no_account'));
+  if (acc.password && acc.password !== p) return showError(t('err_wrong_pass'));
+
+  const accounts = getAccounts();
+  const idx = accounts.findIndex(a => a.username.toLowerCase() === u.toLowerCase());
+  if (idx >= 0) {
+    accounts[idx].lastLogin = Date.now();
+    accounts[idx].saved = remember;
+    saveAccounts(accounts);
+  }
+
+  const cleanName = cleanUsername(acc.username);
+  localStorage.setItem('trb_username', cleanName);
+  localStorage.setItem('trb_uuid', acc.uuid);
+  localStorage.setItem('trb_current_account', acc.id);
+
+  if (ipcRenderer) {
+    try {
+      await ipcRenderer.invoke('sync-account-with-game', { accountName: cleanName });
+      if (remember) {
+        await ipcRenderer.invoke('save-session', {
+          user: { name: cleanName, uuid: acc.uuid, type: 'cracked' },
+          remember: true
+        });
+      }
+    } catch(e) {}
+    ipcRenderer.send('login-success', { name: cleanName, uuid: acc.uuid, type: 'cracked' });
+  } else {
+    window.location.href = 'index.html';
+  }
+}
+
+async function doCreate(){
+  const accounts = getAccounts();
+  if (accounts.length >= MAX_ACCOUNTS) return showError(t('err_max_accounts'));
+
+  const u = document.getElementById('create-user').value.trim();
+  const p1 = document.getElementById('create-pass').value;
+  const p2 = document.getElementById('create-pass2').value;
+
+  if (!u || u.length < 3) return showError(t('err_name_len'));
+  if (u.length > 16) return showError(t('err_name_long'));
+  if (!/^[A-Za-z0-9_]+$/.test(u)) return showError(t('err_name_chars'));
+  if (!p1 || p1.length < 4) return showError(t('err_pass_min'));
+  if (p1 !== p2) return showError(t('err_pass_match'));
+  if (findAccount(u)) return showError(t('err_name_taken'));
+
+  const newAcc = normalizeAccount({
+    username: u,
+    name: u,
+    password: p1,
+    uuid: generateUUID(),
+    created: Date.now(),
+    lastLogin: Date.now(),
+    saved: true
+  });
+
+  accounts.push(newAcc);
+  saveAccounts(accounts);
+
+  const cleanName = cleanUsername(u);
+  localStorage.setItem('trb_username', cleanName);
+  localStorage.setItem('trb_uuid', newAcc.uuid);
+  localStorage.setItem('trb_current_account', newAcc.id);
+
+  if (ipcRenderer) {
+    try {
+      await ipcRenderer.invoke('sync-account-with-game', { accountName: cleanName });
+      await ipcRenderer.invoke('save-session', {
+        user: { name: cleanName, uuid: newAcc.uuid, type: 'cracked' },
+        remember: true
+      });
+    } catch(e) {}
+    ipcRenderer.send('login-success', { name: cleanName, uuid: newAcc.uuid, type: 'cracked' });
+  } else {
+    window.location.href = 'index.html';
+  }
+}
+
+function renderSavedAccounts(){
+  const accounts = getAccounts().filter(a => a.saved);
+  const box = document.getElementById('saved-accounts');
+  const list = document.getElementById('saved-list');
+  if (!box || !list) return;
+  updateCreateCounter();
+  if (accounts.length === 0) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  list.innerHTML = accounts.map(a => `
+    <div class="saved-item" onclick="quickLogin('${a.username.replace(/'/g, "\\'")}')">
+      <div class="saved-avatar">${a.username[0].toUpperCase()}</div>
+      <div class="saved-info">
+        <strong>${a.username}</strong>
+        <span>${a.lastLogin ? new Date(a.lastLogin).toLocaleDateString(LANG === 'ar' ? 'ar-SA' : 'en-US') : '—'}</span>
+      </div>
+      <button class="saved-remove" onclick="event.stopPropagation();removeSavedAccount('${a.username.replace(/'/g, "\\'")}')">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+function quickLogin(u){
+  const inp = document.getElementById('login-user');
+  if (inp) inp.value = u;
+  document.getElementById('login-pass').focus();
+  switchAuthTab('login');
+}
+
+function removeSavedAccount(u){
+  const a = getAccounts();
+  const i = a.findIndex(x => x.username === u);
+  if (i >= 0) { a[i].saved = false; saveAccounts(a); }
+  renderSavedAccounts();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  applyLang();
+  renderSavedAccounts();
+  updateCreateCounter();
+
+  const userInput = document.getElementById('login-user');
+  const passInput = document.getElementById('login-pass');
+
+  userInput.addEventListener('keypress', e => { if (e.key === 'Enter') passInput.focus(); });
+  passInput.addEventListener('keypress', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('create-pass2').addEventListener('keypress', e => { if (e.key === 'Enter') doCreate(); });
+
+  const lastUser = localStorage.getItem('trb_username');
+  if (lastUser) {
+    userInput.value = lastUser;
+    passInput.focus();
+  } else {
+    userInput.focus();
+  }
+});
+</script>
+</body>
+</html>
